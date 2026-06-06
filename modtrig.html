@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trigonometry Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f1f5f9;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── ModuleWrapper ── */
+  .module-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+  }
+
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .back-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: #f8fafc; }
+
+  .module-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #a78bfa 0%, #818cf8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .module-titles h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+  }
+  .module-titles p {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  /* ── Glass card ── */
+  .glass {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226,232,240,0.8);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+  /* ── Main grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .canvas-card {
+    border-radius: 20px;
+    padding: 16px;
+  }
+
+  canvas {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    min-height: 420px;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .panel {
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .panel h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 12px;
+  }
+
+  /* Angle display */
+  .angle-display {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .angle-big {
+    font-size: 40px;
+    font-weight: 700;
+    color: #4f46e5;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Inter', monospace;
+    line-height: 1;
+  }
+  .angle-rad {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-left: 8px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: #6366f1;
+    cursor: pointer;
+  }
+
+  .animate-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .animate-btn.start {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #4f46e5;
+  }
+  .animate-btn.start:hover { background: #e0e7ff; }
+  .animate-btn.stop {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #e11d48;
+  }
+  .animate-btn:active { transform: scale(0.97); }
+
+  /* Trig values */
+  .trig-row {
+    border-radius: 12px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .trig-row:last-child { margin-bottom: 0; }
+  .trig-row.sin  { background: #fdf2f8; }
+  .trig-row.cos  { background: #eef2ff; }
+  .trig-row.tan  { background: #fffbeb; }
+  .trig-label { font-size: 13px; font-weight: 600; }
+  .trig-label.sin { color: #ec4899; }
+  .trig-label.cos { color: #4f46e5; }
+  .trig-label.tan { color: #d97706; }
+  .trig-val { font-family: monospace; font-size: 13px; color: #334155; }
+
+  /* Quick angles */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .quick-btn {
+    padding: 6px 0;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: rgba(255,255,255,0.6);
+    color: #64748b;
+    transition: background 0.15s, color 0.15s;
+  }
+  .quick-btn:hover { background: white; }
+  .quick-btn.active { background: #e0e7ff; color: #4338ca; }
+
+  /* ── Learning Panel ── */
+  .learning-panel {
+    border-radius: 20px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .learning-panel { grid-template-columns: 1fr; }
+  }
+
+  .lp-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #a78bfa;
+    margin-bottom: 6px;
+  }
+  .lp-section p {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="module-wrapper">
+
+  <!-- Header -->
+  <div class="module-header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="module-icon">🔄</div>
+    <div class="module-titles">
+      <h1>Trigonometry Explorer</h1>
+      <p>Spin the unit circle, discover sin, cos, tan</p>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Canvas -->
+    <div class="glass canvas-card">
+      <canvas id="trigCanvas"></canvas>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- Angle panel -->
+      <div class="glass panel">
+        <h3>Angle</h3>
+        <div class="angle-display">
+          <span class="angle-big" id="angleDeg">45</span><span>°</span>
+          <span class="angle-rad" id="angleRad">(0.79 rad)</span>
+        </div>
+        <input type="range" id="angleSlider" min="0" max="360" step="1" value="45" />
+        <button class="animate-btn start" id="animBtn">▶ Animate Rotation</button>
+      </div>
+
+      <!-- Trig values panel -->
+      <div class="glass panel">
+        <h3>Trig Values</h3>
+        <div class="trig-row sin">
+          <span class="trig-label sin">sin(θ)</span>
+          <span class="trig-val" id="sinVal">0.7071</span>
+        </div>
+        <div class="trig-row cos">
+          <span class="trig-label cos">cos(θ)</span>
+          <span class="trig-val" id="cosVal">0.7071</span>
+        </div>
+        <div class="trig-row tan">
+          <span class="trig-label tan">tan(θ)</span>
+          <span class="trig-val" id="tanVal">1.0000</span>
+        </div>
+      </div>
+
+      <!-- Quick angles panel -->
+      <div class="glass panel">
+        <h3>Quick Angles</h3>
+        <div class="quick-grid" id="quickGrid"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Learning Panel -->
+  <div class="glass learning-panel">
+    <div class="lp-section">
+      <h4>What is this?</h4>
+      <p>The unit circle shows how sin, cos, and tan relate to angles. The point rotates around a circle of radius 1. Sin is the vertical distance, cos is the horizontal distance, and tan is the ratio sin/cos.</p>
+    </div>
+    <div class="lp-section">
+      <h4>Why does it work?</h4>
+      <p>As the angle changes, the projections on the axes create smooth wave patterns. At 90° sin is maximum (1), cos is zero. At 0° it's the opposite. This is why trigonometric functions are periodic.</p>
+    </div>
+    <div class="lp-section">
+      <h4>Real-life uses</h4>
+      <p>Trigonometry is used in GPS navigation, music synthesis, building bridges, computer graphics, and game physics.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── State ──
+  let angle = 45;
+  let animating = false;
+  let animId = null;
+
+  // ── DOM refs ──
+  const canvas   = document.getElementById('trigCanvas');
+  const ctx      = canvas.getContext('2d');
+  const slider   = document.getElementById('angleSlider');
+  const animBtn  = document.getElementById('animBtn');
+  const angleDeg = document.getElementById('angleDeg');
+  const angleRad = document.getElementById('angleRad');
+  const sinVal   = document.getElementById('sinVal');
+  const cosVal   = document.getElementById('cosVal');
+  const tanVal   = document.getElementById('tanVal');
+  const quickGrid = document.getElementById('quickGrid');
+
+  // ── Quick angle buttons ──
+  const QUICK = [0,30,45,60,90,120,135,180,210,270,315,360];
+  QUICK.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn' + (a === angle ? ' active' : '');
+    btn.textContent = a + '°';
+    btn.dataset.angle = a;
+    btn.addEventListener('click', () => { setAngle(a); stopAnim(); });
+    quickGrid.appendChild(btn);
+  });
+
+  function updateQuickBtns() {
+    quickGrid.querySelectorAll('.quick-btn').forEach(b => {
+      b.classList.toggle('active', +b.dataset.angle === Math.round(angle));
+    });
+  }
+
+  // ── Formatting ──
+  function fmt(v) { return isFinite(v) ? v.toFixed(4) : '∞'; }
+
+  // ── Update UI numbers ──
+  function updateUI() {
+    const rad = angle * Math.PI / 180;
+    angleDeg.textContent = Math.round(angle);
+    angleRad.textContent = `(${rad.toFixed(2)} rad)`;
+    sinVal.textContent = fmt(Math.sin(rad));
+    cosVal.textContent = fmt(Math.cos(rad));
+    tanVal.textContent = fmt(Math.tan(rad));
+    slider.value = angle;
+    updateQuickBtns();
+  }
+
+  function setAngle(a) {
+    angle = a;
+    updateUI();
+    draw();
+  }
+
+  // ── Draw ──
+  function draw() {
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    // Only resize if needed (avoids flicker during animation)
+    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+      canvas.width  = rect.width  * dpr;
+      canvas.height = rect.height * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const W  = rect.width, H = rect.height;
+    const cx = W / 2,     cy = H / 2;
+    const r  = Math.min(W, H) * 0.35;
+    const rad = angle * Math.PI / 180;
+    const sinV = Math.sin(rad), cosV = Math.cos(rad), tanV = Math.tan(rad);
+
+    // Background
+    ctx.fillStyle = '#fafbff';
+    ctx.fillRect(0, 0, W, H);
+
+    // Axes
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Angle arc
+    ctx.beginPath();
+    ctx.arc(cx, cy, 30, 0, -rad, true);
+    ctx.strokeStyle = '#a78bfa';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Angle label
+    ctx.fillStyle = '#7c3aed';
+    ctx.font = '13px Inter, sans-serif';
+    const labelRad = rad / 2;
+    ctx.fillText(
+      `${Math.round(angle)}°`,
+      cx + 38 * Math.cos(labelRad),
+      cy - 38 * Math.sin(labelRad) + 4
+    );
+
+    const px = cx + r * cosV;
+    const py = cy - r * sinV;
+
+    // cos line (horizontal)
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, cy);
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#6366f1';
+    ctx.font = 'bold 12px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('cos', (cx + px) / 2, cy + 20);
+
+    // sin line (vertical)
+    ctx.beginPath(); ctx.moveTo(px, cy); ctx.lineTo(px, py);
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#ec4899';
+    ctx.textAlign = 'left';
+    ctx.fillText('sin', px + 8, (cy + py) / 2 + 4);
+
+    // Radius line (dashed)
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Tan line
+    if (Math.abs(cosV) > 0.01) {
+      const tanLen  = r * tanV;
+      const tanEndY = cy - tanLen;
+      const clampY  = Math.max(10, Math.min(H - 10, tanEndY));
+      ctx.beginPath();
+      ctx.moveTo(cx + r, cy);
+      ctx.lineTo(cx + r, clampY);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.textAlign = 'left';
+      ctx.fillText('tan', cx + r + 8, (cy + clampY) / 2);
+    }
+
+    // Point outer
+    ctx.beginPath();
+    ctx.arc(px, py, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#818cf8';
+    ctx.fill();
+    // Point inner
+    ctx.beginPath();
+    ctx.arc(px, py, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+
+    // Quadrant labels
+    ctx.fillStyle = '#c7ceda';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('I',   cx + r / 2,      cy - r / 2);
+    ctx.fillText('II',  cx - r / 2,      cy - r / 2);
+    ctx.fillText('III', cx - r / 2,      cy + r / 2 + 10);
+    ctx.fillText('IV',  cx + r / 2,      cy + r / 2 + 10);
+  }
+
+  // ── Animation ──
+  function startAnim() {
+    animating = true;
+    animBtn.textContent = '⏹ Stop';
+    animBtn.className = 'animate-btn stop';
+    (function loop() {
+      angle = (angle + 0.8) % 360;
+      updateUI();
+      draw();
+      if (animating) animId = requestAnimationFrame(loop);
+    })();
+  }
+
+  function stopAnim() {
+    animating = false;
+    cancelAnimationFrame(animId);
+    animBtn.textContent = '▶ Animate Rotation';
+    animBtn.className = 'animate-btn start';
+  }
+
+  animBtn.addEventListener('click', () => {
+    if (animating) stopAnim(); else startAnim();
+  });
+
+  // ── Slider ──
+  slider.addEventListener('input', () => {
+    stopAnim();
+    setAngle(+slider.value);
+  });
+
+  // ── Resize ──
+  function onResize() {
+    // Force canvas to re-measure its CSS size
+    canvas.style.height = '';
+    const rect = canvas.getBoundingClientRect();
+    // Set a natural square-ish height based on width
+    const h = Math.max(320, Math.min(rect.width, 520));
+    canvas.style.height = h + 'px';
+    draw();
+  }
+
+  window.addEventListener('resize', onResize);
+
+  // ── Boot ──
+  // Let layout settle first
+  setTimeout(() => { onResize(); updateUI(); }, 50);
+</script>
+</body>
+</html>

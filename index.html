@@ -1,0 +1,538 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Playground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        /* --- CORE DESIGN SYSTEM --- */
+        :root {
+            --bg-color: #f7f9fd; 
+            --navy-primary: #1b253c; /* Precise dark navy charcoal matching 'Math' */
+            --text-muted: #7d89a0; /* Muted slate blue for text details */
+            --card-bg: #ffffff;
+            
+            /* Sharp 3-stop font linear gradient from left to right */
+            --playground-gradient: linear-gradient(to right, #635bff 0%, #a855f7 55%, #00b4d8 100%);
+            
+            /* Solid Royal Purple/Indigo button gradient with distinct drop-shadow base */
+            --btn-gradient: linear-gradient(135deg, #6366f1, #7c3aed);
+            --violet-accent: #5046e5; /* Stats numeric tone */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f6f8fc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--navy-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND FLOATING ELEMENTS --- */
+        .bg-symbols {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-sym {
+            position: absolute;
+            font-family: 'Playfair Display', serif;
+            color: rgba(99, 91, 255, 0.04);
+            user-select: none;
+            animation: floatAnimation 18s ease-in-out infinite;
+        }
+
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
+            50% { transform: translateY(-25px) rotate(10deg); opacity: 0.8; }
+        }
+
+        /* --- HERO HEADER SECTION --- */
+        .hero {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 80px 24px 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            border: 1px solid #e2e6fa;
+            color: #635bff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 22px;
+            border-radius: 999px;
+            margin-bottom: 36px;
+            box-shadow: 0 2px 10px rgba(99, 91, 255, 0.04);
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background-color: #635bff;
+            border-radius: 50%;
+        }
+
+        .hero-title {
+            line-height: 1.05;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .title-top {
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3.8rem, 8vw, 5.8rem);
+            font-weight: 900;
+            color: var(--navy-primary);
+        }
+
+        .title-bottom {
+            display: block;
+            font-family: 'Playfair Display', serif; 
+            font-size: clamp(4rem, 8vw, 6rem);
+            font-weight: 900;
+            background: var(--playground-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 520px;
+            margin: 0 auto 36px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* Formula Chips Row */
+        .formulas-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 44px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .formula-chip {
+            background: #ffffff;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 8px 22px;
+            border-radius: 999px;
+            border: 1px solid #edf0fd;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Royal Purple Button Setup */
+        .cta-btn {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 16px 44px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 56px;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Counter Metrics Layout */
+        .stats-row {
+            display: flex;
+            gap: 64px;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-num {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--violet-accent);
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+
+        /* --- TARGET LEARNING GRID MODULES --- */
+        .modules-section {
+            position: relative;
+            z-index: 1;
+            max-width: 1140px;
+            width: 100%;
+            margin: 40px auto 0;
+            padding: 20px 24px 80px;
+        }
+
+        .section-header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: var(--navy-primary);
+            text-align: center;
+            margin-bottom: 12px;
+            font-weight: 900;
+        }
+
+        .section-header-sub {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+
+        /* --- MODULE CONTAINER COMPONENT CARDS --- */
+        .module-card {
+            position: relative;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            min-height: 140px;
+            border: 1px solid #eef0f8;
+            box-shadow: 0 4px 20px rgba(27, 37, 60, 0.02);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-body-wrapper {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .icon-wrapper-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.3rem;
+        }
+
+        .text-node-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .text-node-block h3 {
+            color: var(--navy-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .text-node-block p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .module-card:hover {
+            box-shadow: 0 12px 30px rgba(99, 91, 255, 0.06);
+            transform: translateY(-4px);
+        }
+
+        /* --- SYSTEM BOUNDARY FOOTER --- */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-text-main {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .footer-text-sub {
+            font-size: 0.72rem;
+            color: #a0aec0;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 640px) {
+            .stats-row { gap: 36px; }
+            .modules-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-symbols" id="mathBgCanvas"></div>
+
+    <header class="hero">
+        <div class="badge">Interactive Mathematics Exhibition</div>
+        
+        <h1 class="hero-title">
+            <span class="title-top">Math</span>
+            <span class="title-bottom">Playground</span>
+        </h1>
+        
+        <p class="hero-sub">Explore mathematics through play, discovery, and visualization.</p>
+        
+        <div class="formulas-row">
+            <span class="formula-chip">y = mx + b</span>
+            <span class="formula-chip">a² + b² = c²</span>
+            <span class="formula-chip">P(A∪B)</span>
+            <span class="formula-chip">∫ f(x)dx</span>
+            <span class="formula-chip">sin(θ)</span>
+        </div>
+        
+        <button class="cta-btn" id="exploreTriggerBtn">Start Exploring ✨</button>
+        
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-num" data-count-val="10">0</div>
+                <div class="stat-label">Modules</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num">∞</div>
+                <div class="stat-label">Possibilities</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" data-count-val="0">0</div>
+                <div class="stat-label">Boring Lectures</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="modules-section" id="interactiveGridSection">
+        <h2 class="section-header-title">Learning Modules</h2>
+        <p class="section-header-sub">10 interactive experiences. Click any card to begin.</p>
+        
+        <div class="modules-grid">
+            
+            <a href="modfun.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #edf2ff; color: #6366f1;">📈</div>
+                    <div class="text-node-block">
+                        <h3>Function Playground</h3>
+                        <p>Type equations, tweak variables, watch graphs transform instantly.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="modtrig.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #ecfeff; color: #0891b2;">🔄</div>
+                    <div class="text-node-block">
+                        <h3>Trigonometry Explorer</h3>
+                        <p>Spin the unit circle, see sin, cos, and tan come alive.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="modprob.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #fdf2f8; color: #db2777;">🎲</div>
+                    <div class="text-node-block">
+                        <h3>Probability Lab</h3>
+                        <p>Flip coins, roll dice, draw cards — see randomness reveal patterns.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="modgeo.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #f1f5f9; color: #475569;">📐</div>
+                    <div class="text-node-block">
+                        <h3>Geometry Playground</h3>
+                        <p>Drag points to reshape triangles, rectangles, circles, and polygons.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="modpy.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #f0fdf4; color: #059669;">📏</div>
+                    <div class="text-node-block">
+                        <h3>Pythagoras Visualizer</h3>
+                        <p>See a² + b² = c² visually with animated squares on each side.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="modstat.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #eff6ff; color: #2563eb;">📊</div>
+                    <div class="text-node-block">
+                        <h3>Statistics Lab</h3>
+                        <p>Enter data, instantly see mean, median, mode, charts, and box plots.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="progress.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #fff7ed; color: #ea580c;">🔍</div>
+                    <div class="text-node-block">
+                        <h3>Pattern Detective</h3>
+                        <p>Feed number sequences and uncover the hidden mathematical rule.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="progress.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #fef2f2; color: #dc2626;">🧮</div>
+                    <div class="text-node-block">
+                        <h3>Algebra Solver</h3>
+                        <p>Enter equations and watch them solve step by step, like a story.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="progress.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #f0fdf4; color: #16a34a;">🌍</div>
+                    <div class="text-node-block">
+                        <h3>Math in Real Life</h3>
+                        <p>Shopping discounts, budgets, travel time, and sports statistics.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="progress.html" class="module-card">
+                <div class="card-body-wrapper">
+                    <div class="icon-wrapper-box" style="background: #fefce8; color: #ca8a04;">🏆</div>
+                    <div class="text-node-block">
+                        <h3>Math Challenge Arena</h3>
+                        <p>Quick calculations, puzzles, streaks, and badges. Can you keep up?</p>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <footer>
+        <p class="footer-text-main">Math Playground — Built for the love of learning ✨</p>
+        <p class="footer-text-sub">Explore • Discover • Understand</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // Background Procedural Node Layout Elements
+            const canvasNode = document.getElementById("mathBgCanvas");
+            const structuralGlyphs = ["π", "∑", "√", "∫", "∃", "α", "β", "λ", "θ"];
+            const baseSpreadDensity = 22;
+
+            for (let i = 0; i < baseSpreadDensity; i++) {
+                const glyphElement = document.createElement("div");
+                glyphElement.classList.add("bg-sym");
+                glyphElement.textContent = structuralGlyphs[Math.floor(Math.random() * structuralGlyphs.length)];
+                
+                glyphElement.style.left = `${Math.random() * 100}%`;
+                glyphElement.style.top = `${Math.random() * 92}%`;
+                glyphElement.style.animationDelay = `${Math.random() * 5}s`;
+                glyphElement.style.animationDuration = `${14 + Math.random() * 10}s`;
+                glyphElement.style.fontSize = `${1.1 + Math.random() * 0.8}rem`;
+                
+                canvasNode.appendChild(glyphElement);
+            }
+
+            // Incremental Statistic Display Automation
+            const counterNodes = document.querySelectorAll("[data-count-val]");
+            counterNodes.forEach(node => {
+                const targetLimit = parseInt(node.getAttribute("data-count-val"), 10);
+                if (targetLimit === 0) {
+                    node.textContent = "0";
+                    return;
+                }
+                
+                let frameTickValue = 0;
+                const incrementStepDuration = Math.floor(1000 / targetLimit);
+                
+                const processIntervalTick = setInterval(() => {
+                    frameTickValue++;
+                    node.textContent = frameTickValue;
+                    if (frameTickValue >= targetLimit) {
+                        clearInterval(processIntervalTick);
+                    }
+                }, incrementStepDuration);
+            });
+
+            // Smooth Scroll Setup Trigger
+            const navigationAnchorBtn = document.getElementById("exploreTriggerBtn");
+            const viewingTargetElement = document.getElementById("interactiveGridSection");
+            
+            navigationAnchorBtn.addEventListener("click", () => {
+                viewingTargetElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+```

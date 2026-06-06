@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Function Playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #818cf8;
+    --accent-light: #a5b4fc;
+    --accent-dark: #6366f1;
+    --accent-glow: rgba(129,140,248,0.15);
+    --bg: #f1f5f9;
+    --glass: rgba(255,255,255,0.72);
+    --glass-border: rgba(203,213,225,0.5);
+    --text: #334155;
+    --muted: #94a3b8;
+    --label: #64748b;
+    --indigo-50: #eef2ff;
+    --indigo-200: #c7d2fe;
+    --indigo-700: #4338ca;
+    --red-50: #fef2f2;
+    --red-200: #fecaca;
+    --red-600: #dc2626;
+    --shadow-md: 0 4px 16px rgba(129,140,248,0.18);
+    --radius: 16px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ── MODULE WRAPPER ── */
+  .module-wrapper { max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
+
+  .module-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+
+  .back-btn {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--label);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    backdrop-filter: blur(12px);
+  }
+  .back-btn:hover { background: #fff; }
+  .back-btn:active { transform: scale(0.96); }
+
+  .header-icon { font-size: 28px; line-height: 1; }
+
+  .header-text h1 { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .header-text p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ── GLASS CARD ── */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* ── LAYOUT ── */
+  .playground-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 860px) {
+    .playground-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  .card { border-radius: var(--radius); padding: 20px; }
+
+  .card h3 { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px; }
+
+  /* preset buttons */
+  .preset-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .preset-btn {
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #64748b;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.08s;
+  }
+  .preset-btn:hover  { background: rgba(255,255,255,0.6); }
+  .preset-btn:active { transform: scale(0.97); }
+  .preset-btn.active {
+    background: var(--indigo-50);
+    color: var(--indigo-700);
+    border-color: var(--indigo-200);
+    box-shadow: 0 1px 4px rgba(99,102,241,0.08);
+  }
+
+  /* sliders */
+  .slider-group { display: flex; flex-direction: column; gap: 16px; }
+
+  .slider-row {}
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  .slider-label span:first-child { font-weight: 500; color: #64748b; }
+  .slider-label .slider-val { font-family: 'Courier New', monospace; font-weight: 700; color: var(--accent-dark); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--accent) var(--pct,50%), #e2e8f0 var(--pct,50%));
+    outline: none;
+    cursor: pointer;
+    transition: background 0.05s;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid var(--accent);
+    box-shadow: 0 1px 6px rgba(129,140,248,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 2px 10px rgba(129,140,248,0.45);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid var(--accent);
+    cursor: pointer;
+  }
+
+  /* action buttons */
+  .btn-row { display: flex; gap: 8px; margin-top: 4px; }
+
+  .btn-random {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, #818cf8, #a855f7);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-random:hover  { box-shadow: 0 6px 22px rgba(129,140,248,0.35); }
+  .btn-random:active { transform: scale(0.96); }
+
+  .btn-anim {
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+  }
+  .btn-anim:hover  { border-color: var(--indigo-200); }
+  .btn-anim:active { transform: scale(0.96); }
+  .btn-anim.active {
+    background: var(--red-50);
+    border-color: var(--red-200);
+    color: var(--red-600);
+  }
+
+  /* ── GRAPH PANEL ── */
+  .graph-panel {
+    border-radius: var(--radius);
+    padding: 16px;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .graph-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  .graph-meta span { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; }
+
+  .canvas-wrap {
+    flex: 1;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: #fafbff;
+    min-height: 370px;
+    position: relative;
+  }
+
+  canvas { width: 100%; height: 100%; display: block; }
+
+  /* ── LEARNING PANEL ── */
+  .learning-panel {
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+
+  .learning-inner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .learning-inner { grid-template-columns: 1fr; }
+  }
+
+  .learn-block h4 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin-bottom: 6px;
+  }
+  .learn-block p { font-size: 13px; color: #475569; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="module-wrapper">
+
+  <!-- HEADER -->
+  <div class="module-header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="header-icon">📈</div>
+    <div class="header-text">
+      <h1>Function Playground</h1>
+      <p>Type, tweak, watch graphs come alive</p>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="playground-grid">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Presets -->
+      <div class="glass card">
+        <h3>Choose Function</h3>
+        <div class="preset-list" id="presetList"></div>
+      </div>
+
+      <!-- Parameters -->
+      <div class="glass card">
+        <h3>Adjust Parameters</h3>
+        <div class="slider-group">
+          <div class="slider-row">
+            <div class="slider-label"><span>a</span><span class="slider-val" id="aVal">1.0</span></div>
+            <input type="range" id="sliderA" min="-5" max="5" step="0.1" value="1" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>b</span><span class="slider-val" id="bVal">0.0</span></div>
+            <input type="range" id="sliderB" min="-5" max="5" step="0.1" value="0" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>c</span><span class="slider-val" id="cVal">0.0</span></div>
+            <input type="range" id="sliderC" min="-5" max="5" step="0.1" value="0" />
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:16px;">
+          <button class="btn-random" id="btnRandom">🎲 Randomize</button>
+          <button class="btn-anim"   id="btnAnim">▶</button>
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- GRAPH -->
+    <div class="glass graph-panel">
+      <div class="graph-meta">
+        <span id="graphLabel">y = ax² + bx + c</span>
+        <span id="graphParams">a=1.0 b=0.0 c=0.0</span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="graphCanvas"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- LEARNING PANEL -->
+  <div class="glass learning-panel">
+    <div class="learning-inner">
+      <div class="learn-block">
+        <h4>What</h4>
+        <p id="learnWhat"></p>
+      </div>
+      <div class="learn-block">
+        <h4>Why</h4>
+        <p id="learnWhy">Functions describe relationships between numbers. By changing parameters, you see how each part of the equation affects the output — this builds deep intuition about how mathematics models the world.</p>
+      </div>
+      <div class="learn-block">
+        <h4>Real Life</h4>
+        <p id="learnReal">Functions are everywhere: predicting weather (sine waves), calculating profit (linear), modeling gravity (quadratic), and tracking population growth (exponential).</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /module-wrapper -->
+
+<script>
+/* ── DATA ── */
+const PRESETS = [
+  {
+    label: 'y = ax² + bx + c',
+    fn: (x,a,b,c) => a*x*x + b*x + c,
+    defaults: [1, 0, 0],
+    what: "You're exploring a quadratic function y = ax² + bx + c. 'a' controls the steepness and direction of the parabola, 'b' shifts it left or right, and 'c' moves it up or down."
+  },
+  {
+    label: 'y = a·sin(bx) + c',
+    fn: (x,a,b,c) => a*Math.sin(b*x) + c,
+    defaults: [2, 1, 0],
+    what: "You're exploring a sine wave y = a·sin(bx) + c. 'a' sets the amplitude (height), 'b' controls frequency (how tight the waves are), and 'c' shifts the wave up or down."
+  },
+  {
+    label: 'y = a·cos(bx) + c',
+    fn: (x,a,b,c) => a*Math.cos(b*x) + c,
+    defaults: [2, 1, 0],
+    what: "You're exploring a cosine wave y = a·cos(bx) + c. Like sine, 'a' is amplitude, 'b' is frequency, and 'c' shifts vertically. Cosine starts at its peak instead of zero."
+  },
+  {
+    label: 'y = ax + b',
+    fn: (x,a,b) => a*x + b,
+    defaults: [1, 0, 0],
+    what: "You're exploring a linear function y = ax + b. 'a' is the slope (steepness), 'b' is the y-intercept (where the line crosses the y-axis). 'c' has no effect here."
+  },
+  {
+    label: 'y = a·eᵇˣ + c',
+    fn: (x,a,b,c) => a*Math.exp(b*x) + c,
+    defaults: [1, 0.3, 0],
+    what: "You're exploring an exponential function y = a·eᵇˣ + c. 'a' scales the output, 'b' controls how fast it grows or decays, and 'c' shifts it vertically."
+  },
+  {
+    label: 'y = a/(x+b) + c',
+    fn: (x,a,b,c) => { const d = x+b; return Math.abs(d) < 0.05 ? NaN : a/d + c; },
+    defaults: [1, 0, 0],
+    what: "You're exploring a rational function y = a/(x+b) + c. 'a' scales the curve, 'b' shifts the vertical asymptote left or right, and 'c' shifts the horizontal asymptote up or down."
+  },
+];
+
+/* ── STATE ── */
+let currentPreset = 0;
+let a = 1, b = 0, c = 0;
+let animating = false;
+let animRAF = null;
+let animT = 0;
+
+/* ── DOM ── */
+const canvas    = document.getElementById('graphCanvas');
+const ctx       = canvas.getContext('2d');
+const sliderA   = document.getElementById('sliderA');
+const sliderB   = document.getElementById('sliderB');
+const sliderC   = document.getElementById('sliderC');
+const aVal      = document.getElementById('aVal');
+const bVal      = document.getElementById('bVal');
+const cVal      = document.getElementById('cVal');
+const graphLabel  = document.getElementById('graphLabel');
+const graphParams = document.getElementById('graphParams');
+const learnWhat   = document.getElementById('learnWhat');
+const btnRandom = document.getElementById('btnRandom');
+const btnAnim   = document.getElementById('btnAnim');
+const presetList= document.getElementById('presetList');
+
+/* ── BUILD PRESETS ── */
+PRESETS.forEach((p, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'preset-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = p.label;
+  btn.addEventListener('click', () => selectPreset(i));
+  presetList.appendChild(btn);
+});
+
+/* ── SLIDER GRADIENT HELPER ── */
+function updateSliderGradient(slider) {
+  const min = +slider.min, max = +slider.max, val = +slider.value;
+  const pct = ((val - min) / (max - min)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+}
+
+/* ── SYNC UI ── */
+function syncUI() {
+  aVal.textContent = a.toFixed(1);
+  bVal.textContent = b.toFixed(1);
+  cVal.textContent = c.toFixed(1);
+  sliderA.value = a;
+  sliderB.value = b;
+  sliderC.value = c;
+  updateSliderGradient(sliderA);
+  updateSliderGradient(sliderB);
+  updateSliderGradient(sliderC);
+  graphLabel.textContent  = PRESETS[currentPreset].label;
+  graphParams.textContent = `a=${a.toFixed(1)} b=${b.toFixed(1)} c=${c.toFixed(1)}`;
+  learnWhat.textContent   = PRESETS[currentPreset].what;
+  draw();
+}
+
+/* ── DRAW ── */
+function draw() {
+  const dpr  = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const cx = W / 2, cy = H / 2;
+  const scale = 40;
+
+  // Background
+  ctx.fillStyle = '#fafbff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#e8ecf4';
+  ctx.lineWidth = 1;
+  for (let i = -30; i <= 30; i++) {
+    const px = cx + i * scale;
+    if (px >= 0 && px <= W) { ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,H); ctx.stroke(); }
+    const py = cy + i * scale;
+    if (py >= 0 && py <= H) { ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(W,py); ctx.stroke(); }
+  }
+
+  // Axes
+  ctx.strokeStyle = '#c7d2e8';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '11px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  for (let i = -10; i <= 10; i++) {
+    if (i === 0) continue;
+    const px = cx + i * scale;
+    if (px > 15 && px < W - 15) ctx.fillText(String(i), px, cy + 16);
+    const py = cy - i * scale;
+    if (py > 15 && py < H - 15) {
+      ctx.textAlign = 'right';
+      ctx.fillText(String(i), cx - 8, py + 4);
+      ctx.textAlign = 'center';
+    }
+  }
+
+  const fn = PRESETS[currentPreset].fn;
+
+  // Glow pass
+  ctx.beginPath();
+  let started = false;
+  for (let px = 0; px < W; px += 0.5) {
+    const x = (px - cx) / scale;
+    const y = fn(x, a, b, c);
+    const py = cy - y * scale;
+    if (isNaN(py) || !isFinite(py) || py < -2000 || py > H + 2000) { started = false; continue; }
+    if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+  }
+  ctx.strokeStyle = 'rgba(129,140,248,0.15)';
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Main line
+  ctx.beginPath();
+  started = false;
+  for (let px = 0; px < W; px += 0.5) {
+    const x = (px - cx) / scale;
+    const y = fn(x, a, b, c);
+    const py = cy - y * scale;
+    if (isNaN(py) || !isFinite(py) || py < -2000 || py > H + 2000) { started = false; continue; }
+    if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+  }
+  ctx.strokeStyle = '#818cf8';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+}
+
+/* ── PRESET SELECT ── */
+function selectPreset(i) {
+  stopAnim();
+  currentPreset = i;
+  a = PRESETS[i].defaults[0];
+  b = PRESETS[i].defaults[1];
+  c = PRESETS[i].defaults[2] ?? 0;
+  document.querySelectorAll('.preset-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === i);
+  });
+  syncUI();
+}
+
+/* ── SLIDERS ── */
+sliderA.addEventListener('input', () => { a = +sliderA.value; stopAnim(); syncUI(); });
+sliderB.addEventListener('input', () => { b = +sliderB.value; stopAnim(); syncUI(); });
+sliderC.addEventListener('input', () => { c = +sliderC.value; stopAnim(); syncUI(); });
+
+/* ── RANDOMIZE ── */
+btnRandom.addEventListener('click', () => {
+  stopAnim();
+  a = +((Math.random()*6-3).toFixed(1));
+  b = +((Math.random()*6-3).toFixed(1));
+  c = +((Math.random()*4-2).toFixed(1));
+  syncUI();
+});
+
+/* ── ANIMATION ── */
+function startAnim() {
+  animating = true;
+  btnAnim.textContent = '⏹';
+  btnAnim.classList.add('active');
+  animT = 0;
+  const loop = () => {
+    animT += 0.02;
+    a = +(2 * Math.sin(animT)).toFixed(3);
+    b = +(Math.cos(animT * 0.7) * 2).toFixed(3);
+    syncUI();
+    animRAF = requestAnimationFrame(loop);
+  };
+  animRAF = requestAnimationFrame(loop);
+}
+
+function stopAnim() {
+  if (!animating) return;
+  animating = false;
+  cancelAnimationFrame(animRAF);
+  btnAnim.textContent = '▶';
+  btnAnim.classList.remove('active');
+}
+
+btnAnim.addEventListener('click', () => {
+  if (animating) stopAnim(); else startAnim();
+});
+
+/* ── RESIZE ── */
+const ro = new ResizeObserver(() => draw());
+ro.observe(canvas.parentElement);
+
+/* ── INIT ── */
+syncUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pythagoras Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f1f5f9;
+    --glass: rgba(255,255,255,0.72);
+    --glass-border: rgba(203,213,225,0.5);
+    --text: #334155;
+    --muted: #94a3b8;
+    --label: #64748b;
+    --indigo: #6366f1;
+    --indigo-light: #eef2ff;
+    --indigo-border: #c7d2fe;
+    --purple: #a855f7;
+    --purple-light: #faf5ff;
+    --cyan: #0891b2;
+    --cyan-light: #ecfeff;
+    --radius: 16px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ── MODULE WRAPPER ── */
+  .module-wrapper { max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
+
+  .module-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+
+  .back-btn {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--label);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    backdrop-filter: blur(12px);
+  }
+  .back-btn:hover  { background: #fff; }
+  .back-btn:active { transform: scale(0.96); }
+
+  .header-icon { font-size: 28px; line-height: 1; }
+  .header-text h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-text p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ── GLASS ── */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* ── LAYOUT ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 860px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ── CANVAS PANEL ── */
+  .canvas-panel { border-radius: var(--radius); padding: 16px; }
+
+  canvas { width: 100%; border-radius: var(--radius-sm); display: block; min-height: 450px; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .card { border-radius: var(--radius); padding: 20px; }
+  .card h3 { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 16px; }
+
+  /* sliders */
+  .slider-group { display: flex; flex-direction: column; gap: 16px; }
+  .slider-row {}
+  .slider-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .slider-label .name { font-weight: 500; }
+  .slider-label .val  { font-family: 'Courier New', monospace; font-weight: 700; }
+  .color-a { color: var(--indigo); }
+  .color-b { color: var(--purple); }
+  .color-c { color: var(--cyan);   }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range].range-a { background: linear-gradient(to right, var(--indigo) var(--pct,50%), #e2e8f0 var(--pct,50%)); }
+  input[type=range].range-b { background: linear-gradient(to right, var(--purple) var(--pct,50%), #e2e8f0 var(--pct,50%)); }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid currentColor;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type=range].range-a::-webkit-slider-thumb { border-color: var(--indigo); }
+  input[type=range].range-b::-webkit-slider-thumb { border-color: var(--purple); }
+
+  /* theorem block */
+  .theorem-center { text-align: center; }
+  .theorem-formula {
+    font-size: 18px;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 10px;
+  }
+  .theorem-chips {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .chip {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+  .chip-a { background: var(--indigo-light); color: var(--indigo); }
+  .chip-b { background: var(--purple-light); color: var(--purple); }
+  .chip-c { background: var(--cyan-light);   color: var(--cyan);   }
+  .chip-op { color: #94a3b8; font-size: 15px; }
+  .theorem-check { font-size: 13px; color: #16a34a; font-weight: 500; margin-top: 4px; }
+
+  /* famous triples */
+  .triple-btn {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    color: #475569;
+    background: rgba(255,255,255,0.6);
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.08s;
+    margin-bottom: 6px;
+  }
+  .triple-btn:last-child { margin-bottom: 0; }
+  .triple-btn:hover  { background: var(--indigo-light); color: var(--indigo); }
+  .triple-btn:active { transform: scale(0.97); }
+
+  /* ── LEARNING PANEL ── */
+  .learning-panel { border-radius: var(--radius); padding: 20px 24px; }
+  .learning-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 700px) { .learning-grid { grid-template-columns: 1fr; } }
+  .learn-block h4 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #0891b2;
+    margin-bottom: 6px;
+  }
+  .learn-block p { font-size: 13px; color: #475569; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="module-wrapper">
+
+  <!-- HEADER -->
+  <div class="module-header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="header-icon">📏</div>
+    <div class="header-text">
+      <h1>Pythagoras Visualizer</h1>
+      <p>See a² + b² = c² come alive</p>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- CANVAS -->
+    <div class="glass canvas-panel">
+      <canvas id="graphCanvas"></canvas>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Sliders -->
+      <div class="glass card">
+        <h3>Adjust Triangle</h3>
+        <div class="slider-group">
+          <div class="slider-row">
+            <div class="slider-label">
+              <span class="name color-a">Side a</span>
+              <span class="val color-a" id="aVal">3.0</span>
+            </div>
+            <input type="range" class="range-a" id="sliderA" min="1" max="7" step="0.1" value="3" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-label">
+              <span class="name color-b">Side b</span>
+              <span class="val color-b" id="bVal">4.0</span>
+            </div>
+            <input type="range" class="range-b" id="sliderB" min="1" max="7" step="0.1" value="4" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Theorem -->
+      <div class="glass card">
+        <h3>The Theorem</h3>
+        <div class="theorem-center">
+          <div class="theorem-formula">a² + b² = c²</div>
+          <div class="theorem-chips">
+            <span class="chip chip-a" id="chipA">9.0</span>
+            <span class="chip-op">+</span>
+            <span class="chip chip-b" id="chipB">16.0</span>
+            <span class="chip-op">=</span>
+            <span class="chip chip-c" id="chipC">25.0</span>
+          </div>
+          <div class="theorem-check" id="checkLine">✓ 9.0 + 16.0 = 25.0</div>
+        </div>
+      </div>
+
+      <!-- Famous triples -->
+      <div class="glass card">
+        <h3>Famous Triples</h3>
+        <button class="triple-btn" onclick="setTriple(3,4)">(3, 4, 5)</button>
+        <button class="triple-btn" onclick="setTriple(5,12)">(5, 12, 13)</button>
+        <button class="triple-btn" onclick="setTriple(6,8)">(6, 8, 10)</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LEARNING PANEL -->
+  <div class="glass learning-panel">
+    <div class="learning-grid">
+      <div class="learn-block">
+        <h4>What</h4>
+        <p>You're seeing the Pythagorean theorem visually. The squares drawn on each side of the right triangle show that the area of the two smaller squares always equals the area of the largest square.</p>
+      </div>
+      <div class="learn-block">
+        <h4>Why</h4>
+        <p>This works because of how right triangles relate to squares. The hypotenuse (longest side) always satisfies a² + b² = c². This is one of the most fundamental theorems in all of mathematics.</p>
+      </div>
+      <div class="learn-block">
+        <h4>Real Life</h4>
+        <p>Used in construction, navigation, GPS calculations, computer graphics, and finding distances on maps.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const canvas  = document.getElementById('graphCanvas');
+  const ctx     = canvas.getContext('2d');
+  const sliderA = document.getElementById('sliderA');
+  const sliderB = document.getElementById('sliderB');
+
+  let sideA = 3, sideB = 4;
+
+  /* ── SLIDER GRADIENT ── */
+  function updateGradient(slider) {
+    const pct = ((+slider.value - +slider.min) / (+slider.max - +slider.min)) * 100;
+    slider.style.setProperty('--pct', pct + '%');
+  }
+
+  /* ── UI UPDATE ── */
+  function syncUI() {
+    const sideC   = Math.sqrt(sideA*sideA + sideB*sideB);
+    const a2 = sideA*sideA, b2 = sideB*sideB, c2 = sideC*sideC;
+
+    document.getElementById('aVal').textContent  = sideA.toFixed(1);
+    document.getElementById('bVal').textContent  = sideB.toFixed(1);
+    document.getElementById('chipA').textContent = a2.toFixed(1);
+    document.getElementById('chipB').textContent = b2.toFixed(1);
+    document.getElementById('chipC').textContent = c2.toFixed(1);
+    document.getElementById('checkLine').textContent =
+      `✓ ${a2.toFixed(1)} + ${b2.toFixed(1)} = ${(a2+b2).toFixed(1)}`;
+
+    sliderA.value = sideA;
+    sliderB.value = sideB;
+    updateGradient(sliderA);
+    updateGradient(sliderB);
+    draw();
+  }
+
+  /* ── DRAW ── */
+  function draw() {
+    const sideC = Math.sqrt(sideA*sideA + sideB*sideB);
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    const W = rect.width, H = rect.height;
+
+    ctx.fillStyle = '#fafbff';
+    ctx.fillRect(0, 0, W, H);
+
+    const scale = Math.min(W, H) / 16;
+    const ox = W * 0.35, oy = H * 0.6;
+    const a = sideA * scale, b = sideB * scale, c = sideC * scale;
+
+    const A = { x: ox,     y: oy     };   // right angle
+    const B = { x: ox + b, y: oy     };   // along base
+    const C = { x: ox,     y: oy - a };   // along height
+
+    // Square on side a (vertical, left of A)
+    ctx.fillStyle = 'rgba(99,102,241,0.12)';
+    ctx.fillRect(A.x - a, A.y - a, a, a);
+    ctx.strokeStyle = '#818cf8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(A.x - a, A.y - a, a, a);
+
+    // Square on side b (horizontal, below A)
+    ctx.fillStyle = 'rgba(168,85,247,0.12)';
+    ctx.fillRect(A.x, A.y, b, b);
+    ctx.strokeStyle = '#a855f7';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(A.x, A.y, b, b);
+
+    // Square on hypotenuse
+    const dx = (B.x - C.x) / c, dy = (B.y - C.y) / c;
+    const perpX = -dy, perpY = dx;
+    const D = { x: C.x + perpX * c, y: C.y + perpY * c };
+    const E = { x: B.x + perpX * c, y: B.y + perpY * c };
+
+    ctx.beginPath();
+    ctx.moveTo(C.x, C.y); ctx.lineTo(D.x, D.y);
+    ctx.lineTo(E.x, E.y); ctx.lineTo(B.x, B.y);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(6,182,212,0.12)';
+    ctx.fill();
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Triangle
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
+    ctx.fillStyle = 'rgba(99,102,241,0.05)';
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Right angle indicator
+    const rSize = 12;
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(A.x + rSize, A.y);
+    ctx.lineTo(A.x + rSize, A.y - rSize);
+    ctx.lineTo(A.x, A.y - rSize);
+    ctx.stroke();
+
+    // Labels
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#6366f1';
+    ctx.fillText(`a = ${sideA.toFixed(1)}`, A.x - 20, (A.y + C.y) / 2);
+
+    ctx.fillStyle = '#a855f7';
+    ctx.fillText(`b = ${sideB.toFixed(1)}`, (A.x + B.x) / 2, A.y + 20);
+
+    ctx.fillStyle = '#0891b2';
+    const midHyp = { x: (B.x + C.x) / 2, y: (B.y + C.y) / 2 };
+    ctx.fillText(`c = ${sideC.toFixed(2)}`, midHyp.x + 20, midHyp.y - 10);
+
+    // Area labels
+    ctx.font = '12px Inter, sans-serif';
+
+    ctx.fillStyle = '#6366f1';
+    ctx.fillText(`a² = ${(sideA*sideA).toFixed(1)}`, A.x - a/2, A.y - a/2 + 4);
+
+    ctx.fillStyle = '#a855f7';
+    ctx.fillText(`b² = ${(sideB*sideB).toFixed(1)}`, A.x + b/2, A.y + b/2 + 4);
+
+    ctx.fillStyle = '#0891b2';
+    const cMid = { x: (C.x+D.x+E.x+B.x)/4, y: (C.y+D.y+E.y+B.y)/4 };
+    ctx.fillText(`c² = ${(sideC*sideC).toFixed(1)}`, cMid.x, cMid.y + 4);
+  }
+
+  /* ── EVENTS ── */
+  sliderA.addEventListener('input', () => { sideA = +sliderA.value; syncUI(); });
+  sliderB.addEventListener('input', () => { sideB = +sliderB.value; syncUI(); });
+
+  function setTriple(a, b) { sideA = a; sideB = b; syncUI(); }
+
+  /* ── RESIZE ── */
+  const ro = new ResizeObserver(() => draw());
+  ro.observe(canvas.parentElement);
+
+  /* ── INIT ── */
+  syncUI();
+</script>
+</body>
+</html>

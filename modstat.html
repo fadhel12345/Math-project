@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Statistics Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #f5f0ff 100%);
+    min-height: 100vh;
+    padding: 24px 16px;
+    color: #334155;
+  }
+
+  /* ── Module Wrapper ── */
+  .module-wrapper { max-width: 960px; margin: 0 auto; }
+
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .back-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .back-btn:hover { background: #f8fafc; color: #334155; }
+
+  .module-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 4px 12px rgba(139,92,246,.35);
+    flex-shrink: 0;
+  }
+
+  .module-title { font-size: 22px; font-weight: 700; color: #1e293b; }
+  .module-subtitle { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+  /* ── Layout grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 720px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .left-col { display: flex; flex-direction: column; gap: 20px; }
+  .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Glass card ── */
+  .glass {
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.7);
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  }
+
+  .card { padding: 20px; }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 12px;
+  }
+
+  /* ── Presets ── */
+  .preset-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  .preset-btn {
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s;
+    background: rgba(255,255,255,.6);
+    color: #64748b;
+  }
+  .preset-btn:hover:not(.active) { background: white; }
+  .preset-btn.active { background: #ede9fe; color: #7c3aed; border-color: #c4b5fd; }
+
+  /* ── Textarea ── */
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,.8);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    color: #334155;
+    resize: none;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  textarea:focus { border-color: #c4b5fd; box-shadow: 0 0 0 3px rgba(196,181,253,.3); }
+
+  .val-count { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+  /* ── Bar Chart ── */
+  .bar-chart-area {
+    position: relative;
+    height: 170px;
+  }
+
+  .bars-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    padding: 0 2px 8px;
+  }
+
+  .bar-wrap {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    position: relative;
+    min-width: 8px;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(to top, #8b5cf6, #818cf8);
+    cursor: pointer;
+    transition: height .4s ease;
+    position: relative;
+  }
+
+  .bar-tooltip {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 10;
+  }
+  .bar:hover .bar-tooltip { opacity: 1; }
+
+  .mean-line {
+    position: absolute;
+    left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+  .mean-line-inner { flex: 1; border-top: 2px dashed #fca5a5; }
+  .mean-label {
+    font-size: 10px;
+    color: #f87171;
+    font-weight: 600;
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Box Plot ── */
+  .box-plot-area {
+    position: relative;
+    height: 48px;
+    margin: 0 16px;
+  }
+
+  .bp-scale {
+    position: absolute;
+    top: 32px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #94a3b8;
+  }
+
+  .bp-line {
+    position: absolute;
+    top: 12px;
+    left: 0; right: 0;
+    height: 2px;
+    background: #cbd5e1;
+  }
+
+  .bp-whisker {
+    position: absolute;
+    top: 4px;
+    width: 2px;
+    height: 16px;
+    background: #64748b;
+  }
+
+  .bp-box {
+    position: absolute;
+    top: 4px;
+    height: 16px;
+    background: #ddd6fe;
+    border: 2px solid #a78bfa;
+    border-radius: 4px;
+  }
+
+  .bp-median {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 24px;
+    background: #f87171;
+  }
+
+  .bp-median-label {
+    position: absolute;
+    top: -14px;
+    font-size: 10px;
+    color: #ef4444;
+    font-weight: 600;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* ── Stat Cards ── */
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 1px solid;
+  }
+
+  .stat-label-text { font-size: 11px; color: #94a3b8; font-weight: 500; }
+  .stat-value { font-size: 18px; font-weight: 700; color: #334155; font-family: monospace; }
+
+  /* colour variants */
+  .indigo-icon  { background:#eef2ff; color:#4f46e5; border-color:#c7d2fe; }
+  .purple-icon  { background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe; }
+  .pink-icon    { background:#fdf2f8; color:#db2777; border-color:#fbcfe8; }
+  .cyan-icon    { background:#ecfeff; color:#0891b2; border-color:#a5f3fc; }
+  .amber-icon   { background:#fffbeb; color:#d97706; border-color:#fde68a; }
+  .green-icon   { background:#f0fdf4; color:#16a34a; border-color:#bbf7d0; }
+
+  /* ── Learning Panel ── */
+  .learning-panel {
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.7);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  }
+  .learning-panel h4 { font-size:14px; font-weight:700; color:#1e293b; margin-bottom:14px; }
+  .learn-item { margin-bottom:12px; }
+  .learn-item strong { display:block; font-size:11px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+  .learn-item p { font-size:13px; color:#475569; line-height:1.6; }
+
+  /* fade-in for stats */
+  .stats-fade { animation: fadeUp .3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="module-wrapper">
+
+  <!-- Header -->
+  <div class="module-header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="module-icon">📊</div>
+    <div>
+      <div class="module-title">Statistics Lab</div>
+      <div class="module-subtitle">Enter data, see patterns emerge instantly</div>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <!-- Data Input -->
+      <div class="glass card">
+        <div class="card-title">Your Data</div>
+        <div class="preset-btns">
+          <button class="preset-btn active" data-preset="Test Scores">Test Scores</button>
+          <button class="preset-btn" data-preset="Heights (cm)">Heights (cm)</button>
+          <button class="preset-btn" data-preset="Daily Steps">Daily Steps</button>
+          <button class="preset-btn" data-preset="Custom">Custom</button>
+        </div>
+        <textarea id="data-input" rows="2" placeholder="Enter numbers separated by commas...">85, 92, 78, 90, 88, 76, 95, 84, 91, 73, 89, 82</textarea>
+        <div class="val-count"><span id="val-count">0</span> values</div>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="glass card" id="bar-card" style="display:none">
+        <div class="card-title">Bar Chart</div>
+        <div class="bar-chart-area">
+          <div class="bars-container" id="bars-container"></div>
+          <div class="mean-line" id="mean-line" style="display:none">
+            <div class="mean-line-inner"></div>
+            <span class="mean-label" id="mean-label"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Box Plot -->
+      <div class="glass card" id="box-card" style="display:none">
+        <div class="card-title">Box Plot</div>
+        <div class="box-plot-area" id="box-plot-area">
+          <div class="bp-scale"><span id="bp-min"></span><span id="bp-max"></span></div>
+          <div class="bp-line"></div>
+          <div class="bp-whisker" id="bp-wl"></div>
+          <div class="bp-whisker" id="bp-wr"></div>
+          <div class="bp-box" id="bp-box"></div>
+          <div class="bp-median" id="bp-median"></div>
+          <div class="bp-median-label" id="bp-median-label">median</div>
+        </div>
+      </div>
+
+    </div><!-- /left-col -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col" id="stats-panel"></div>
+
+  </div><!-- /main-grid -->
+
+  <!-- Learning Panel -->
+  <div class="learning-panel">
+    <h4>📚 What's happening here?</h4>
+    <div class="learn-item">
+      <strong>What</strong>
+      <p>You're calculating statistical measures from your data. Mean is the average, median is the middle value, mode is the most frequent, and range shows the spread.</p>
+    </div>
+    <div class="learn-item">
+      <strong>Why it matters</strong>
+      <p>These measures help summarize large datasets into a few meaningful numbers. The box plot shows the distribution shape — the box contains the middle 50% of data.</p>
+    </div>
+    <div class="learn-item">
+      <strong>Real-life uses</strong>
+      <p>Statistics are used in sports analytics, medical research, business decisions, weather forecasting, and polling predictions.</p>
+    </div>
+  </div>
+
+</div><!-- /module-wrapper -->
+
+<script>
+const PRESETS = {
+  'Test Scores':   [85, 92, 78, 90, 88, 76, 95, 84, 91, 73, 89, 82],
+  'Heights (cm)':  [155, 162, 170, 158, 175, 168, 163, 172, 160, 165],
+  'Daily Steps':   [3200, 5400, 8100, 7300, 4500, 6700, 9800, 2100, 5600, 7400],
+  'Custom':        [],
+};
+
+const textarea   = document.getElementById('data-input');
+const valCount   = document.getElementById('val-count');
+const barsEl     = document.getElementById('bars-container');
+const meanLineEl = document.getElementById('mean-line');
+const meanLabelEl= document.getElementById('mean-label');
+const barCard    = document.getElementById('bar-card');
+const boxCard    = document.getElementById('box-card');
+const statsPanel = document.getElementById('stats-panel');
+
+/* ── Preset buttons ── */
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const name = btn.dataset.preset;
+    if (name !== 'Custom') textarea.value = PRESETS[name].join(', ');
+    update();
+  });
+});
+
+textarea.addEventListener('input', () => {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-preset="Custom"]').classList.add('active');
+  update();
+});
+
+/* ── Compute stats ── */
+function computeStats(data) {
+  if (!data.length) return null;
+  const n = data.length;
+  const sorted = [...data].sort((a, b) => a - b);
+  const mean = data.reduce((a, b) => a + b, 0) / n;
+  const median = n % 2 === 0
+    ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2
+    : sorted[Math.floor(n / 2)];
+  const freq = {};
+  data.forEach(d => freq[d] = (freq[d] || 0) + 1);
+  const maxFreq = Math.max(...Object.values(freq));
+  const modes = Object.entries(freq).filter(([, v]) => v === maxFreq).map(([k]) => +k);
+  const range = sorted[n - 1] - sorted[0];
+  const variance = data.reduce((s, d) => s + (d - mean) ** 2, 0) / n;
+  const stdDev = Math.sqrt(variance);
+  const q1 = sorted[Math.floor(n * 0.25)];
+  const q3 = sorted[Math.floor(n * 0.75)];
+  const iqr = q3 - q1;
+  return { mean, median, modes, range, stdDev,
+           min: sorted[0], max: sorted[n - 1], q1, q3, iqr, n };
+}
+
+/* ── Render ── */
+function update() {
+  const raw = textarea.value;
+  const data = raw.split(/[,\s]+/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+  valCount.textContent = data.length;
+
+  if (!data.length) {
+    barCard.style.display = 'none';
+    boxCard.style.display = 'none';
+    statsPanel.innerHTML = '';
+    return;
+  }
+
+  const stats = computeStats(data);
+  const maxVal = stats.max;
+
+  /* ── Bar chart ── */
+  barCard.style.display = 'block';
+  barsEl.innerHTML = '';
+  data.forEach((v, i) => {
+    const h = Math.max((v / maxVal) * 140, 4);
+    const wrap = document.createElement('div');
+    wrap.className = 'bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = '0px';
+    bar.innerHTML = `<div class="bar-tooltip">${v}</div>`;
+    wrap.appendChild(bar);
+    barsEl.appendChild(wrap);
+    // animate height
+    setTimeout(() => { bar.style.height = h + 'px'; }, i * 30);
+  });
+
+  // Mean line: bottom padding = 8px, max bar height = 140
+  const meanPx = Math.max(2, (stats.mean / maxVal) * 140) + 8;
+  meanLineEl.style.display = 'flex';
+  meanLineEl.style.bottom = meanPx + 'px';
+  meanLabelEl.textContent = `mean (${stats.mean.toFixed(1)})`;
+
+  /* ── Box plot ── */
+  boxCard.style.display = 'block';
+  const rng = stats.max - stats.min || 1;
+  const pct = v => ((v - stats.min) / rng * 100);
+
+  document.getElementById('bp-min').textContent = stats.min;
+  document.getElementById('bp-max').textContent = stats.max;
+  document.getElementById('bp-wl').style.left = pct(stats.min) + '%';
+  document.getElementById('bp-wr').style.left = pct(stats.max) + '%';
+
+  const boxEl = document.getElementById('bp-box');
+  boxEl.style.left  = pct(stats.q1) + '%';
+  boxEl.style.right = (100 - pct(stats.q3)) + '%';
+
+  const medPct = pct(stats.median);
+  document.getElementById('bp-median').style.left = medPct + '%';
+  document.getElementById('bp-median-label').style.left = medPct + '%';
+
+  /* ── Stats panel ── */
+  const items = [
+    { label: 'Mean (Average)',   value: stats.mean.toFixed(2),    icon: 'x̄',  cls: 'indigo-icon' },
+    { label: 'Median (Middle)',  value: stats.median.toFixed(2),  icon: 'M',   cls: 'purple-icon' },
+    { label: 'Mode (Most Common)', value: stats.modes.join(', '), icon: 'Mo',  cls: 'pink-icon'   },
+    { label: 'Range',            value: stats.range.toFixed(2),   icon: 'R',   cls: 'cyan-icon'   },
+    { label: 'Std Deviation',    value: stats.stdDev.toFixed(2),  icon: 'σ',   cls: 'amber-icon'  },
+    { label: 'IQR',              value: stats.iqr.toFixed(2),     icon: 'IQR', cls: 'green-icon'  },
+  ];
+
+  statsPanel.innerHTML = items.map(s => `
+    <div class="glass stat-card stats-fade">
+      <div class="stat-icon ${s.cls}">${s.icon}</div>
+      <div>
+        <div class="stat-label-text">${s.label}</div>
+        <div class="stat-value">${s.value}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// initial render
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Geometry Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f1f5f9;
+    min-height: 100vh;
+    padding: 0;
+  }
+ 
+  /* ── Module Wrapper ── */
+  .module-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+  }
+ 
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+ 
+  .back-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: #f8fafc; }
+ 
+  .module-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+ 
+  .module-titles h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+  }
+  .module-titles p {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+ 
+  /* ── Glass card ── */
+  .glass {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226,232,240,0.8);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+ 
+  /* ── Main grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+ 
+  .canvas-card {
+    border-radius: 20px;
+    padding: 16px;
+  }
+ 
+  canvas {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    min-height: 400px;
+    cursor: crosshair;
+  }
+ 
+  /* ── Sidebar ── */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+ 
+  .panel {
+    border-radius: 20px;
+    padding: 20px;
+  }
+ 
+  .panel h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 12px;
+  }
+ 
+  /* Shape selector */
+  .shape-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+ 
+  .shape-btn {
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.6);
+    color: #64748b;
+    transition: all 0.15s;
+  }
+  .shape-btn:hover { background: white; }
+  .shape-btn.active {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.12);
+  }
+ 
+  /* Measurements */
+  .meas-area {
+    background: #eef2ff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .meas-area .label { font-size: 11px; font-weight: 600; color: #818cf8; }
+  .meas-area .value { font-size: 22px; font-weight: 700; color: #4f46e5; }
+ 
+  .meas-peri {
+    background: #faf5ff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .meas-peri .label { font-size: 11px; font-weight: 600; color: #c084fc; }
+  .meas-peri .value { font-size: 22px; font-weight: 700; color: #9333ea; }
+ 
+  .meas-angles {
+    background: #ecfeff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .meas-angles .label { font-size: 11px; font-weight: 600; color: #22d3ee; }
+  .meas-angles .value { font-size: 14px; font-weight: 700; color: #0e7490; }
+ 
+  .drag-hint {
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+    text-align: center;
+  }
+ 
+  /* Radius slider */
+  .radius-panel { display: none; }
+  .radius-panel.visible { display: block; }
+ 
+  input[type="range"] {
+    width: 100%;
+    accent-color: #6366f1;
+    cursor: pointer;
+  }
+  .radius-val {
+    font-size: 12px;
+    color: #94a3b8;
+    font-family: monospace;
+    margin-top: 4px;
+    display: block;
+  }
+ 
+  /* ── Learning Panel ── */
+  .learning-panel {
+    border-radius: 20px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .learning-panel { grid-template-columns: 1fr; }
+  }
+ 
+  .lp-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6366f1;
+    margin-bottom: 6px;
+  }
+  .lp-section p {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+ 
+<div class="module-wrapper">
+ 
+  <!-- Header -->
+  <div class="module-header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="module-icon">📐</div>
+    <div class="module-titles">
+      <h1>Geometry Playground</h1>
+      <p>Drag points, watch measurements update live</p>
+    </div>
+  </div>
+ 
+  <!-- Main grid -->
+  <div class="main-grid">
+ 
+    <!-- Canvas -->
+    <div class="glass canvas-card">
+      <canvas id="geoCanvas"></canvas>
+    </div>
+ 
+    <!-- Sidebar -->
+    <div class="sidebar">
+ 
+      <!-- Shape selector -->
+      <div class="glass panel">
+        <h3>Shape</h3>
+        <div class="shape-grid">
+          <button class="shape-btn active" data-shape="triangle">△ Triangle</button>
+          <button class="shape-btn" data-shape="rectangle">▭ Rectangle</button>
+          <button class="shape-btn" data-shape="circle">○ Circle</button>
+          <button class="shape-btn" data-shape="polygon">⬠ Polygon</button>
+        </div>
+      </div>
+ 
+      <!-- Measurements -->
+      <div class="glass panel">
+        <h3>Measurements</h3>
+        <div class="meas-area">
+          <div class="label">Area</div>
+          <div class="value" id="areaVal">— cm²</div>
+        </div>
+        <div class="meas-peri">
+          <div class="label" id="periLabel">Perimeter</div>
+          <div class="value" id="periVal">— cm</div>
+        </div>
+        <div class="meas-angles" id="anglesBox">
+          <div class="label">Angles</div>
+          <div class="value" id="anglesVal">—</div>
+        </div>
+        <p class="drag-hint">Drag the points on the canvas to reshape</p>
+      </div>
+ 
+      <!-- Radius panel (circle only) -->
+      <div class="glass panel radius-panel" id="radiusPanel">
+        <h3>Radius</h3>
+        <input type="range" id="radiusSlider" min="20" max="180" value="100" />
+        <span class="radius-val" id="radiusVal">100 px</span>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <!-- Learning Panel -->
+  <div class="glass learning-panel">
+    <div class="lp-section">
+      <h4>What is this?</h4>
+      <p>You're manipulating geometric shapes and seeing how their measurements change in real-time. Drag the points to resize and reshape them.</p>
+    </div>
+    <div class="lp-section">
+      <h4>Why does it work?</h4>
+      <p>Area measures the space inside a shape, perimeter measures the boundary length. Different formulas apply to different shapes: triangle uses Heron's formula, rectangle uses length × width, and circle uses πr².</p>
+    </div>
+    <div class="lp-section">
+      <h4>Real-life uses</h4>
+      <p>Geometry is essential in architecture, land surveying, art, interior design, packaging, and manufacturing.</p>
+    </div>
+  </div>
+ 
+</div>
+ 
+<script>
+  // ── Unit conversion (96 px = 1 inch = 2.54 cm) ──
+  const PX_PER_CM = 96 / 2.54;
+  function pxToCm(px)  { return (px / PX_PER_CM).toFixed(2); }
+  function pxToCm2(px2){ return (px2 / (PX_PER_CM * PX_PER_CM)).toFixed(2); }
+ 
+  // ── State ──
+  let shape = 'triangle';
+ 
+  let triPts = [{ x: 200, y: 80 }, { x: 100, y: 300 }, { x: 350, y: 300 }];
+  let rectPts = [{ x: 100, y: 100 }, { x: 350, y: 280 }];
+  let circCenter = { x: 220, y: 200 };
+  let circRadius = 100;
+  let polyPts = [{ x: 220, y: 70 }, { x: 350, y: 150 }, { x: 320, y: 310 }, { x: 130, y: 310 }, { x: 90, y: 150 }];
+ 
+  let drag = null; // { idx, type }
+ 
+  // ── DOM ──
+  const canvas      = document.getElementById('geoCanvas');
+  const ctx         = canvas.getContext('2d');
+  const areaVal     = document.getElementById('areaVal');
+  const periVal     = document.getElementById('periVal');
+  const periLabel   = document.getElementById('periLabel');
+  const anglesVal   = document.getElementById('anglesVal');
+  const anglesBox   = document.getElementById('anglesBox');
+  const radiusPanel = document.getElementById('radiusPanel');
+  const radiusSlider= document.getElementById('radiusSlider');
+  const radiusValEl = document.getElementById('radiusVal');
+ 
+  // ── Helpers ──
+  function dist(a, b) { return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2); }
+ 
+  function angleBetween(a, b, c) {
+    const ab = { x: a.x - b.x, y: a.y - b.y };
+    const cb = { x: c.x - b.x, y: c.y - b.y };
+    const dot = ab.x * cb.x + ab.y * cb.y;
+    const cross = ab.x * cb.y - ab.y * cb.x;
+    return Math.atan2(Math.abs(cross), dot) * 180 / Math.PI;
+  }
+ 
+  // ── Draw ──
+  function draw() {
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+ 
+    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+      canvas.width  = rect.width  * dpr;
+      canvas.height = rect.height * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+ 
+    const W = rect.width, H = rect.height;
+ 
+    // Background
+    ctx.fillStyle = '#fafbff';
+    ctx.fillRect(0, 0, W, H);
+ 
+    // Grid dots
+    for (let x = 20; x < W; x += 20) {
+      for (let y = 20; y < H; y += 20) {
+        ctx.fillStyle = '#e8ecf4';
+        ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+ 
+    function drawPoint(p, color) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'white'; ctx.fill();
+    }
+ 
+    if (shape === 'triangle') {
+      const [a, b, c] = triPts;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath();
+      ctx.fillStyle = 'rgba(129,140,248,0.1)'; ctx.fill();
+      ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 2.5; ctx.stroke();
+      triPts.forEach(p => drawPoint(p, '#6366f1'));
+      const sides = [[a, b], [b, c], [c, a]];
+      ctx.font = '12px Inter'; ctx.fillStyle = '#6366f1';
+      sides.forEach(([p1, p2]) => {
+        const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+        ctx.fillText(pxToCm(dist(p1, p2)) + ' cm', mx + 5, my - 5);
+      });
+ 
+    } else if (shape === 'rectangle') {
+      const [a, b] = rectPts;
+      const w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
+      const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+      ctx.fillStyle = 'rgba(168,85,247,0.1)';
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2.5;
+      ctx.strokeRect(x, y, w, h);
+      drawPoint(a, '#a855f7'); drawPoint(b, '#a855f7');
+      ctx.font = '12px Inter'; ctx.fillStyle = '#a855f7';
+      ctx.fillText(`${pxToCm(w)} cm`, x + w / 2 - 15, y - 8);
+      ctx.fillText(`${pxToCm(h)} cm`, b.x + 8, y + h / 2);
+ 
+    } else if (shape === 'circle') {
+      ctx.beginPath(); ctx.arc(circCenter.x, circCenter.y, circRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(6,182,212,0.1)'; ctx.fill();
+      ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2.5; ctx.stroke();
+      drawPoint(circCenter, '#0891b2');
+      ctx.beginPath();
+      ctx.moveTo(circCenter.x, circCenter.y);
+      ctx.lineTo(circCenter.x + circRadius, circCenter.y);
+      ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.font = '12px Inter'; ctx.fillStyle = '#0891b2';
+      ctx.fillText(`r = ${pxToCm(circRadius)} cm`, circCenter.x + circRadius / 2 - 20, circCenter.y - 10);
+ 
+    } else {
+      ctx.beginPath();
+      polyPts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(236,72,153,0.08)'; ctx.fill();
+      ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2.5; ctx.stroke();
+      polyPts.forEach(p => drawPoint(p, '#ec4899'));
+    }
+ 
+    updateMeasurements();
+  }
+ 
+  // ── Calculations ──
+  function updateMeasurements() {
+    let area, peri, angles = [];
+ 
+    if (shape === 'triangle') {
+      const [a, b, c] = triPts;
+      const ab = dist(a, b), bc = dist(b, c), ca = dist(c, a);
+      const s = (ab + bc + ca) / 2;
+      area = Math.sqrt(s * (s - ab) * (s - bc) * (s - ca));
+      peri = ab + bc + ca;
+      angles = [angleBetween(c, a, b), angleBetween(a, b, c), angleBetween(b, c, a)].map(x => x.toFixed(1) + '°');
+      periLabel.textContent = 'Perimeter';
+      anglesBox.style.display = 'block';
+ 
+    } else if (shape === 'rectangle') {
+      const w = Math.abs(rectPts[1].x - rectPts[0].x), h = Math.abs(rectPts[1].y - rectPts[0].y);
+      area = w * h; peri = 2 * (w + h);
+      angles = ['90°', '90°', '90°', '90°'];
+      periLabel.textContent = 'Perimeter';
+      anglesBox.style.display = 'block';
+ 
+    } else if (shape === 'circle') {
+      area = Math.PI * circRadius ** 2;
+      peri = 2 * Math.PI * circRadius;
+      angles = ['360°'];
+      periLabel.textContent = 'Circumference';
+      anglesBox.style.display = 'block';
+ 
+    } else {
+      // Shoelace
+      let a = 0;
+      for (let i = 0; i < polyPts.length; i++) {
+        const j = (i + 1) % polyPts.length;
+        a += polyPts[i].x * polyPts[j].y - polyPts[j].x * polyPts[i].y;
+      }
+      area = Math.abs(a) / 2;
+      peri = 0;
+      for (let i = 0; i < polyPts.length; i++) peri += dist(polyPts[i], polyPts[(i + 1) % polyPts.length]);
+      periLabel.textContent = 'Perimeter';
+      anglesBox.style.display = 'none';
+    }
+ 
+    areaVal.textContent = pxToCm2(area) + ' cm²';
+    periVal.textContent = pxToCm(peri) + ' cm';
+    if (angles.length) anglesVal.textContent = angles.join(', ');
+  }
+ 
+  // ── Mouse events ──
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+ 
+  function onDown(e) {
+    const { x: mx, y: my } = getPos(e);
+    drag = null;
+ 
+    if (shape === 'triangle') {
+      triPts.forEach((p, i) => { if (dist(p, { x: mx, y: my }) < 15) drag = { idx: i, type: 'tri' }; });
+    } else if (shape === 'rectangle') {
+      rectPts.forEach((p, i) => { if (dist(p, { x: mx, y: my }) < 15) drag = { idx: i, type: 'rect' }; });
+    } else if (shape === 'circle') {
+      if (dist(circCenter, { x: mx, y: my }) < 15) drag = { idx: 0, type: 'circ' };
+      else if (Math.abs(dist(circCenter, { x: mx, y: my }) - circRadius) < 15) drag = { idx: 1, type: 'circ-r' };
+    } else {
+      polyPts.forEach((p, i) => { if (dist(p, { x: mx, y: my }) < 15) drag = { idx: i, type: 'poly' }; });
+    }
+    if (drag && e.cancelable) e.preventDefault();
+  }
+ 
+  function onMove(e) {
+    if (!drag) return;
+    if (e.cancelable) e.preventDefault();
+    const { x: mx, y: my } = getPos(e);
+    const { idx, type } = drag;
+ 
+    if (type === 'tri') {
+      triPts[idx] = { x: mx, y: my };
+    } else if (type === 'rect') {
+      rectPts[idx] = { x: mx, y: my };
+    } else if (type === 'circ') {
+      circCenter = { x: mx, y: my };
+    } else if (type === 'circ-r') {
+      circRadius = dist(circCenter, { x: mx, y: my });
+      radiusSlider.value = Math.round(circRadius);
+      radiusValEl.textContent = pxToCm(circRadius) + ' cm';
+    } else if (type === 'poly') {
+      polyPts[idx] = { x: mx, y: my };
+    }
+    draw();
+  }
+ 
+  function onUp() { drag = null; }
+ 
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('mouseup', onUp);
+  canvas.addEventListener('mouseleave', onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  canvas.addEventListener('touchmove', onMove, { passive: false });
+  canvas.addEventListener('touchend', onUp);
+ 
+  // ── Shape buttons ──
+  document.querySelectorAll('.shape-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      shape = btn.dataset.shape;
+      document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      radiusPanel.classList.toggle('visible', shape === 'circle');
+      draw();
+    });
+  });
+ 
+  // ── Radius slider ──
+  radiusSlider.addEventListener('input', () => {
+    circRadius = +radiusSlider.value;
+    radiusValEl.textContent = pxToCm(circRadius) + ' cm';
+    draw();
+  });
+ 
+  // ── Resize ──
+  function onResize() {
+    const rect = canvas.getBoundingClientRect();
+    const h = Math.max(320, Math.min(rect.width, 520));
+    canvas.style.height = h + 'px';
+    draw();
+  }
+  window.addEventListener('resize', onResize);
+ 
+  // ── Boot ──
+  setTimeout(() => { onResize(); draw(); }, 50);
+</script>
+</body>
+</html>

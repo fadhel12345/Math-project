@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Probability Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #f5f0ff 100%);
+    min-height: 100vh;
+    padding: 24px 16px;
+    color: #334155;
+  }
+
+  /* ── ModuleWrapper ── */
+  .module-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .back-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .back-btn:hover { background: #f8fafc; color: #334155; }
+
+  .module-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 4px 12px rgba(168,85,247,.35);
+  }
+
+  .module-title { font-size: 22px; font-weight: 700; color: #1e293b; }
+  .module-subtitle { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0 20px;
+    background: rgba(255,255,255,.45);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 6px;
+    border: 1px solid rgba(255,255,255,.6);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .2s;
+    color: #64748b;
+    background: transparent;
+  }
+  .tab-btn:hover { background: rgba(255,255,255,.5); }
+  .tab-btn.active {
+    background: white;
+    color: #4f46e5;
+    border-color: #c7d2fe;
+    box-shadow: 0 4px 12px rgba(79,70,229,.12);
+  }
+
+  /* ── Glass card ── */
+  .glass {
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.7);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.06);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title { font-size: 15px; font-weight: 600; color: #475569; }
+  .reset-btn {
+    font-size: 12px;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color .15s;
+  }
+  .reset-btn:hover { color: #f87171; }
+
+  /* ── Flip/Roll buttons ── */
+  .action-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  .action-btn {
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: transform .1s, opacity .15s;
+    box-shadow: 0 4px 12px rgba(99,102,241,.25);
+  }
+  .action-btn:active { transform: scale(.95); }
+  .action-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .action-btn.indigo { background: linear-gradient(135deg,#6366f1,#a855f7); box-shadow: 0 4px 12px rgba(99,102,241,.3); }
+  .action-btn.purple { background: linear-gradient(135deg,#a855f7,#ec4899); box-shadow: 0 4px 12px rgba(168,85,247,.3); }
+  .action-btn.cyan   { background: linear-gradient(135deg,#06b6d4,#3b82f6); box-shadow: 0 4px 12px rgba(6,182,212,.3); }
+
+  /* ── Coin display ── */
+  .coin-display { display: flex; justify-content: center; padding: 8px 0 16px; }
+  .coin {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700;
+    border: 4px solid;
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    transition: background .3s, border-color .3s, color .3s;
+  }
+  .coin.empty   { background:#fff; border-color:#e2e8f0; color:#cbd5e1; }
+  .coin.heads   { background:#fefce8; border-color:#fcd34d; color:#d97706; }
+  .coin.tails   { background:#f8fafc; border-color:#94a3b8; color:#64748b; }
+  .coin.flipping { animation: spin3d .4s ease-in-out; }
+  @keyframes spin3d { 0%{transform:rotateY(0)} 50%{transform:rotateY(360deg)} 100%{transform:rotateY(720deg)} }
+
+  /* ── Stat bars ── */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+  .stat-box {
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid;
+  }
+  .stat-box.heads-box { background:#fffbeb; border-color:#fde68a; }
+  .stat-box.tails-box { background:#f8fafc; border-color:#e2e8f0; }
+
+  .stat-number { font-size: 26px; font-weight: 700; }
+  .heads-box .stat-number { color:#d97706; }
+  .tails-box .stat-number { color:#475569; }
+
+  .stat-label { font-size: 11px; margin-top: 4px; }
+  .heads-box .stat-label { color:#f59e0b; }
+  .tails-box .stat-label { color:#94a3b8; }
+
+  .bar-track { height: 8px; border-radius: 9999px; margin-top: 8px; overflow: hidden; }
+  .heads-box .bar-track { background:#fde68a; }
+  .tails-box .bar-track { background:#e2e8f0; }
+
+  .bar-fill { height: 100%; border-radius: 9999px; transition: width .5s ease; }
+  .heads-box .bar-fill { background:#fbbf24; }
+  .tails-box .bar-fill { background:#94a3b8; }
+
+  /* ── Dice ── */
+  .dice-selector { margin-bottom: 14px; }
+  .dice-selector span { font-size: 12px; color:#64748b; display:block; margin-bottom:6px; }
+  .dice-btns { display:flex; gap:8px; }
+  .dice-num-btn {
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s;
+    background: rgba(255,255,255,.6);
+    color: #64748b;
+  }
+  .dice-num-btn.active { background:#ede9fe; color:#7c3aed; border-color:#c4b5fd; }
+  .dice-num-btn:hover:not(.active) { background:white; }
+
+  .dice-display { display:flex; justify-content:center; gap:8px; padding:8px 0; min-height:56px; align-items:center; }
+  .die-face { font-size: 36px; animation: dieIn .3s ease; }
+  @keyframes dieIn { from{transform:scale(0) rotate(180deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+
+  .dist-chart {
+    background: rgba(255,255,255,.5);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .dist-label { font-size: 11px; color:#94a3b8; margin-bottom:10px; }
+  .dist-bars { display:flex; align-items:flex-end; gap:3px; height:100px; }
+  .dist-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .dist-bar {
+    width:100%;
+    border-radius:4px 4px 0 0;
+    background: linear-gradient(to top,#a855f7,#ec4899);
+    min-height:2px;
+    transition: height .4s ease;
+  }
+  .dist-val { font-size:9px; color:#94a3b8; }
+
+  /* ── Cards ── */
+  .cards-area {
+    display:flex; flex-wrap:wrap; gap:8px;
+    justify-content:center;
+    min-height:64px;
+    margin-bottom:14px;
+  }
+  .playing-card {
+    width:42px; height:58px;
+    border-radius:8px;
+    border: 2px solid;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    animation: cardIn .3s ease;
+  }
+  @keyframes cardIn { from{transform:scale(0) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+  .playing-card.red  { border-color:#fca5a5; background:#fff1f2; color:#ef4444; }
+  .playing-card.black{ border-color:#cbd5e1; background:#ffffff; color:#334155; }
+  .card-suit { font-size:16px; }
+
+  .suit-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+  .suit-box {
+    background:rgba(255,255,255,.5);
+    border-radius:10px;
+    padding:10px;
+    text-align:center;
+  }
+  .suit-emoji { font-size:20px; }
+  .suit-count { font-size:14px; font-weight:600; color:#475569; margin-top:2px; }
+
+  /* ── Footer text ── */
+  .hint-text { text-align:center; font-size:12px; color:#94a3b8; font-style:italic; margin-bottom:8px; }
+  .total-text { text-align:center; font-size:12px; color:#94a3b8; margin-bottom:0; }
+
+  /* ── Learning Panel ── */
+  .learning-panel {
+    margin-top: 28px;
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.7);
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .learning-panel h4 { font-size:14px; font-weight:700; color:#1e293b; margin-bottom:14px; }
+  .learn-item { margin-bottom:12px; }
+  .learn-item strong { display:block; font-size:12px; font-weight:700; color:#a855f7; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+  .learn-item p { font-size:13px; color:#475569; line-height:1.6; }
+
+  /* ── Panels ── */
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  /* animation for tab switch */
+  .panel.active { animation: fadeSlide .25s ease; }
+  @keyframes fadeSlide { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+</style>
+</head>
+<body>
+
+<div class="module-wrapper">
+
+  <!-- Header -->
+  <div class="module-header">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <div class="module-icon">🎲</div>
+    <div>
+      <div class="module-title">Probability Lab</div>
+      <div class="module-subtitle">Simulate experiments, watch randomness become predictable</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="coin">🪙 Coins</button>
+    <button class="tab-btn"        data-tab="dice">🎲 Dice</button>
+    <button class="tab-btn"        data-tab="card">🃏 Cards</button>
+  </div>
+
+  <!-- Glass container -->
+  <div class="glass">
+
+    <!-- ══ COIN PANEL ══ -->
+    <div id="panel-coin" class="panel active">
+      <div class="section-header">
+        <span class="section-title">🪙 Coin Flips</span>
+        <button class="reset-btn" id="coin-reset">Reset</button>
+      </div>
+
+      <div class="action-btns">
+        <button class="action-btn indigo" data-flip="1">Flip 1×</button>
+        <button class="action-btn indigo" data-flip="10">Flip 10×</button>
+        <button class="action-btn indigo" data-flip="50">Flip 50×</button>
+        <button class="action-btn indigo" data-flip="100">Flip 100×</button>
+      </div>
+
+      <div class="coin-display">
+        <div class="coin empty" id="coin-face">?</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-box heads-box">
+          <div class="stat-number" id="heads-count">0</div>
+          <div class="stat-label">Heads (<span id="heads-pct">0.0</span>%)</div>
+          <div class="bar-track"><div class="bar-fill" id="heads-bar" style="width:0%"></div></div>
+        </div>
+        <div class="stat-box tails-box">
+          <div class="stat-number" id="tails-count">0</div>
+          <div class="stat-label">Tails (<span id="tails-pct">0.0</span>%)</div>
+          <div class="bar-track"><div class="bar-fill" id="tails-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <p class="hint-text" id="coin-hint"></p>
+      <p class="total-text">Total: <span id="coin-total">0</span> flips</p>
+    </div>
+
+    <!-- ══ DICE PANEL ══ -->
+    <div id="panel-dice" class="panel">
+      <div class="section-header">
+        <span class="section-title">🎲 Dice Rolls</span>
+        <button class="reset-btn" id="dice-reset">Reset</button>
+      </div>
+
+      <div class="dice-selector">
+        <span>Number of dice:</span>
+        <div class="dice-btns">
+          <button class="dice-num-btn active" data-num="1">1</button>
+          <button class="dice-num-btn"        data-num="2">2</button>
+          <button class="dice-num-btn"        data-num="3">3</button>
+          <button class="dice-num-btn"        data-num="4">4</button>
+        </div>
+      </div>
+
+      <div class="action-btns">
+        <button class="action-btn purple" data-roll="1">Roll 1×</button>
+        <button class="action-btn purple" data-roll="10">Roll 10×</button>
+        <button class="action-btn purple" data-roll="50">Roll 50×</button>
+        <button class="action-btn purple" data-roll="100">Roll 100×</button>
+      </div>
+
+      <div class="dice-display" id="dice-display">
+        <span style="font-size:13px;color:#94a3b8">Roll to see dice</span>
+      </div>
+
+      <div class="dist-chart" id="dist-chart" style="display:none">
+        <div class="dist-label">Frequency Distribution (<span id="roll-total-inline">0</span> rolls)</div>
+        <div class="dist-bars" id="dist-bars"></div>
+      </div>
+
+      <p class="total-text">Total: <span id="roll-total">0</span> rolls</p>
+    </div>
+
+    <!-- ══ CARD PANEL ══ -->
+    <div id="panel-card" class="panel">
+      <div class="section-header">
+        <span class="section-title">🃏 Card Draw</span>
+        <button class="reset-btn" id="card-reset">Reset</button>
+      </div>
+
+      <button class="action-btn cyan" style="width:100%;padding:14px;margin-bottom:16px" id="draw-btn">Draw a Card</button>
+
+      <div class="cards-area" id="cards-area"></div>
+
+      <div class="suit-grid" id="suit-grid">
+        <div class="suit-box"><div class="suit-emoji">♠</div><div class="suit-count" id="cnt-spade">0</div></div>
+        <div class="suit-box"><div class="suit-emoji">♥</div><div class="suit-count" id="cnt-heart">0</div></div>
+        <div class="suit-box"><div class="suit-emoji">♦</div><div class="suit-count" id="cnt-diamond">0</div></div>
+        <div class="suit-box"><div class="suit-emoji">♣</div><div class="suit-count" id="cnt-club">0</div></div>
+      </div>
+
+      <p class="total-text">Total drawn: <span id="card-total">0</span></p>
+    </div>
+
+  </div><!-- /glass -->
+
+  <!-- Learning Panel -->
+  <div class="learning-panel" style="margin-top:24px">
+    <h4>📚 What's happening here?</h4>
+    <div class="learn-item">
+      <strong>What</strong>
+      <p>You're running probability experiments. Each trial is random, but as you repeat the experiment many times, the results converge toward the expected probabilities.</p>
+    </div>
+    <div class="learn-item">
+      <strong>Why it matters</strong>
+      <p>This is the Law of Large Numbers — with enough trials, experimental probability approaches theoretical probability. A fair coin should approach 50/50 heads/tails.</p>
+    </div>
+    <div class="learn-item">
+      <strong>Real-life uses</strong>
+      <p>Probability is used in weather forecasts, medical testing, insurance pricing, game design, and stock market analysis.</p>
+    </div>
+  </div>
+
+</div><!-- /module-wrapper -->
+
+<script>
+/* ════════════════════════════════
+   TABS
+════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ════════════════════════════════
+   COIN FLIPPER
+════════════════════════════════ */
+const coinState = { results: [], flipping: false };
+
+function updateCoinUI() {
+  const total = coinState.results.length;
+  const heads = coinState.results.filter(Boolean).length;
+  const tails = total - heads;
+  const hPct = total ? ((heads / total) * 100).toFixed(1) : '0.0';
+  const tPct = total ? ((tails / total) * 100).toFixed(1) : '0.0';
+
+  document.getElementById('heads-count').textContent = heads;
+  document.getElementById('tails-count').textContent = tails;
+  document.getElementById('heads-pct').textContent = hPct;
+  document.getElementById('tails-pct').textContent = tPct;
+  document.getElementById('heads-bar').style.width = hPct + '%';
+  document.getElementById('tails-bar').style.width = tPct + '%';
+  document.getElementById('coin-total').textContent = total;
+
+  let hint = '';
+  if (total > 0 && total < 50)  hint = "Keep flipping — randomness hasn't settled yet...";
+  else if (total >= 50 && total < 200) hint = "Notice the percentages slowly approaching 50%...";
+  else if (total >= 200) hint = "✨ The Law of Large Numbers in action — near perfect 50/50!";
+  document.getElementById('coin-hint').textContent = hint;
+
+  // coin face
+  const face = document.getElementById('coin-face');
+  if (total === 0) {
+    face.textContent = '?'; face.className = 'coin empty';
+  } else {
+    const last = coinState.results[total - 1];
+    face.textContent = last ? 'H' : 'T';
+    face.className = 'coin ' + (last ? 'heads' : 'tails');
+  }
+}
+
+function flipCoins(n) {
+  if (coinState.flipping) return;
+  coinState.flipping = true;
+
+  const face = document.getElementById('coin-face');
+  face.classList.add('flipping');
+  document.querySelectorAll('[data-flip]').forEach(b => b.disabled = true);
+
+  setTimeout(() => {
+    const newFlips = Array.from({ length: n }, () => Math.random() < .5);
+    coinState.results.push(...newFlips);
+    face.classList.remove('flipping');
+    coinState.flipping = false;
+    document.querySelectorAll('[data-flip]').forEach(b => b.disabled = false);
+    updateCoinUI();
+  }, 400);
+}
+
+document.querySelectorAll('[data-flip]').forEach(btn =>
+  btn.addEventListener('click', () => flipCoins(+btn.dataset.flip)));
+
+document.getElementById('coin-reset').addEventListener('click', () => {
+  coinState.results = [];
+  updateCoinUI();
+});
+
+/* ════════════════════════════════
+   DICE ROLLER
+════════════════════════════════ */
+const diceState = { numDice: 1, results: [], rolling: false };
+const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+function buildDistBars() {
+  const min = diceState.numDice, max = diceState.numDice * 6;
+  const freq = {};
+  for (let i = min; i <= max; i++) freq[i] = 0;
+  diceState.results.forEach(r => freq[r] = (freq[r] || 0) + 1);
+  const maxF = Math.max(...Object.values(freq), 1);
+
+  const container = document.getElementById('dist-bars');
+  container.innerHTML = '';
+  Object.entries(freq).forEach(([val, count]) => {
+    const h = Math.max((count / maxF) * 80, 2);
+    const col = document.createElement('div');
+    col.className = 'dist-col';
+    col.innerHTML = `
+      <div class="dist-bar" style="height:${h}px"></div>
+      <span class="dist-val">${val}</span>`;
+    container.appendChild(col);
+  });
+}
+
+function updateDiceUI(lastDice) {
+  const total = diceState.results.length;
+  document.getElementById('roll-total').textContent = total;
+  document.getElementById('roll-total-inline').textContent = total;
+
+  // dice display
+  const display = document.getElementById('dice-display');
+  if (lastDice && lastDice.length) {
+    display.innerHTML = lastDice.map((v,i) =>
+      `<span class="die-face" style="animation-delay:${i*.05}s">${diceFaces[v-1]}</span>`
+    ).join('');
+  }
+
+  // distribution
+  if (total > 0) {
+    document.getElementById('dist-chart').style.display = 'block';
+    buildDistBars();
+  } else {
+    document.getElementById('dist-chart').style.display = 'none';
+  }
+}
+
+function rollDice(n) {
+  if (diceState.rolling) return;
+  diceState.rolling = true;
+  document.querySelectorAll('[data-roll]').forEach(b => b.disabled = true);
+
+  setTimeout(() => {
+    let lastDice = [];
+    for (let r = 0; r < n; r++) {
+      let sum = 0;
+      const dice = [];
+      for (let d = 0; d < diceState.numDice; d++) {
+        const v = Math.floor(Math.random() * 6) + 1;
+        sum += v; dice.push(v);
+      }
+      diceState.results.push(sum);
+      if (r === n - 1) lastDice = dice;
+    }
+    diceState.rolling = false;
+    document.querySelectorAll('[data-roll]').forEach(b => b.disabled = false);
+    updateDiceUI(lastDice);
+  }, 400);
+}
+
+document.querySelectorAll('[data-roll]').forEach(btn =>
+  btn.addEventListener('click', () => rollDice(+btn.dataset.roll)));
+
+document.querySelectorAll('.dice-num-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.dice-num-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    diceState.numDice = +btn.dataset.num;
+    diceState.results = [];
+    document.getElementById('dice-display').innerHTML =
+      '<span style="font-size:13px;color:#94a3b8">Roll to see dice</span>';
+    updateDiceUI(null);
+  });
+});
+
+document.getElementById('dice-reset').addEventListener('click', () => {
+  diceState.results = [];
+  document.getElementById('dice-display').innerHTML =
+    '<span style="font-size:13px;color:#94a3b8">Roll to see dice</span>';
+  updateDiceUI(null);
+});
+
+/* ════════════════════════════════
+   CARD DRAW
+════════════════════════════════ */
+const cardState = { drawn: [] };
+const suits = ['♠','♥','♦','♣'];
+const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const suitIds = { '♠':'spade','♥':'heart','♦':'diamond','♣':'club' };
+
+function updateCardUI() {
+  const area = document.getElementById('cards-area');
+  // show last 12
+  const visible = cardState.drawn.slice(-12);
+  area.innerHTML = visible.map(c => {
+    const isRed = c.suit === '♥' || c.suit === '♦';
+    return `<div class="playing-card ${isRed ? 'red' : 'black'}">
+      <span>${c.rank}</span>
+      <span class="card-suit">${c.suit}</span>
+    </div>`;
+  }).join('');
+
+  // suit counts
+  const counts = { '♠':0,'♥':0,'♦':0,'♣':0 };
+  cardState.drawn.forEach(c => counts[c.suit]++);
+  suits.forEach(s => {
+    document.getElementById('cnt-' + suitIds[s]).textContent = counts[s];
+  });
+  document.getElementById('card-total').textContent = cardState.drawn.length;
+}
+
+document.getElementById('draw-btn').addEventListener('click', () => {
+  const suit = suits[Math.floor(Math.random() * 4)];
+  const rank = ranks[Math.floor(Math.random() * 13)];
+  cardState.drawn.push({ suit, rank });
+  updateCardUI();
+});
+
+document.getElementById('card-reset').addEventListener('click', () => {
+  cardState.drawn = [];
+  updateCardUI();
+});
+</script>
+</body>
+</html>
